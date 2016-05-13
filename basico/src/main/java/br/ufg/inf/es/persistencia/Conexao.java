@@ -2,7 +2,16 @@ package br.ufg.inf.es.persistencia;
 
 import java.sql.*;
 
+/**
+ * Ilustra operações básicas de
+ * interação com SGBD relacional.
+ */
 public class Conexao {
+
+    /**
+     * Executa algumas operações com SGBD.
+     * @param args Arquivo contendo banco SQLite.
+     */
     public static void main(String[] args) {
 
         if (!CarregarDriver()) {
@@ -18,33 +27,50 @@ public class Conexao {
         }
 
         try {
+            // De posse de uma Statement, várias operações podem
+            // ser executadas, conforme ilustrado abaixo.
             Statement statement = connection.createStatement();
-            statement.executeUpdate("drop table if exists alunos");
-            statement.executeUpdate("insert into person values(1, 'leo')");
-            statement.executeUpdate("insert into person values(2, 'yui')");
-            ResultSet rs = statement.executeQuery("select * from person");
+
+            statement.executeUpdate("drop table if exists colegas");
+            statement.executeUpdate("create table colegas (nome string)");
+            statement.executeUpdate("insert into colegas values('João')");
+            statement.executeUpdate("insert into colegas values('Pedro')");
+
+            // Recupera e exibe todos os registros de 'colegas'
+            ResultSet rs = statement.executeQuery("select * from colegas");
+
             while (rs.next()) {
-                // read the result set
-                System.out.println("name = " + rs.getString("name"));
-                System.out.println("id = " + rs.getInt("id"));
+                System.out.println("Nome = " + rs.getString("nome"));
             }
         } catch (SQLException e) {
-            // if the error message is "out of memory",
-            // it probably means no database file is found
             System.err.println(e.getMessage());
+            System.exit(1);
         } finally {
             try {
                 if (connection != null)
                     connection.close();
             } catch (SQLException e) {
-                // connection close failed.
-                System.err.println(e);
+                System.err.println(e.getMessage());
+                System.exit(1);
             }
         }
 
         System.exit(0);
     }
 
+    /**
+     * Carrega driver JDBC. Cada SGBD possui
+     * um driver JDBC correspondente.
+     * Consulte a documentação do seu SGBD para
+     * detalhes.
+     *
+     * Esse exemplo faz uso do driver JDBC para
+     * o SQLite.
+     *
+     * @return {@code true} se foi possível a
+     * carga do driver e {@code false}, caso
+     * contrário.
+     */
     private static boolean CarregarDriver() {
         try {
             Class.forName("org.sqlite.JDBC");
@@ -54,6 +80,18 @@ public class Conexao {
         }
     }
 
+    /**
+     * Obtém conexão para um dado banco de dados
+     * criado pelo SQLite.
+     *
+     * @param arquivo Nome completo do arquivo contendo
+     *                o banco de dados para o qual a
+     *                conexão será criada.
+     *
+     * @return A referência para a conexão, caso tenha sido
+     * obtida de forma satisfatória ou o valor {@code null},
+     * caso contrário.
+     */
     private static Connection obtemConexao(String arquivo) {
         try {
             String url = "jdbc:sqlite:" + arquivo;
